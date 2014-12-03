@@ -55,10 +55,12 @@ def chat_server():
 
                         # at this stage, no data means probably the connection has been broken
                         broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr) 
+                        process_command("removeuser",sock)
 
                 # exception 
                 except:
                     broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
+                    process_command("removeuser",sock)
                     continue
 
     server_socket.close()
@@ -81,12 +83,23 @@ def broadcast (server_socket, sock, message):
 def process_command(data,sock):
     if "adduser" in data:
         register_user(data,sock)
+    if "removeuser" in data:
+        deregister_user(data,sock)
 
 def register_user(data,sock):
     with open("users.txt", "a") as myfile:
             myfile.write(data+"::"+str(sock)+"\n")
 
-    
+def deregister_user(data,sock):
+    f = open("users.txt","r")
+    lines = f.readlines()
+    f.close()
+    f = open("users.txt","w")
+    for line in lines:
+        if not (str(sock) in line):
+            f.write(line)
+    f.close()
+
 if __name__ == "__main__":
 
     sys.exit(chat_server())
