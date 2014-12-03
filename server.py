@@ -45,6 +45,8 @@ def chat_server():
                     data = sock.recv(RECV_BUFFER)
                     if data:
                         # there is something in the socket
+                        print data
+                        process_command(data)
                         broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)  
                     else:
                         # remove the socket that's broken    
@@ -75,6 +77,10 @@ def broadcast (server_socket, sock, message):
                 # broken socket, remove it
                 if socket in SOCKET_LIST:
                     SOCKET_LIST.remove(socket)
+
+def process_command(data):
+    print "inside the process command"
+    print data
  
 if __name__ == "__main__":
 
