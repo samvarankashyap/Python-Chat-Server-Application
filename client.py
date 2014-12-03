@@ -5,8 +5,8 @@ import socket
 import select
  
 def chat_client():
-    if(len(sys.argv) < 3) :
-        print 'Usage : python chat_client.py hostname port'
+    if(len(sys.argv) < 4) :
+        print 'Usage : python chat_client.py hostname port username'
         sys.exit()
 
     host = sys.argv[1]
