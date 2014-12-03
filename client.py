@@ -11,6 +11,7 @@ def chat_client():
 
     host = sys.argv[1]
     port = int(sys.argv[2])
+    client_name = sys.argv[3]
      
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
@@ -18,6 +19,7 @@ def chat_client():
     # connect to remote host
     try :
         s.connect((host, port))
+        s.send("adduser "+client_name)
     except :
         print 'Unable to connect'
         sys.exit()
