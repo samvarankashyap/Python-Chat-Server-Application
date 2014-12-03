@@ -46,7 +46,7 @@ def chat_server():
                     if data:
                         # there is something in the socket
                         print data
-                        process_command(data)
+                        process_command(data,sock)
                         broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)  
                     else:
                         # remove the socket that's broken    
@@ -78,10 +78,15 @@ def broadcast (server_socket, sock, message):
                 if socket in SOCKET_LIST:
                     SOCKET_LIST.remove(socket)
 
-def process_command(data):
-    print "inside the process command"
-    print data
- 
+def process_command(data,sock):
+    if "adduser" in data:
+        register_user(data,sock)
+
+def register_user(data,sock):
+    with open("users.txt", "a") as myfile:
+            myfile.write(data+"::"+str(sock)+"\n")
+
+    
 if __name__ == "__main__":
 
     sys.exit(chat_server())
