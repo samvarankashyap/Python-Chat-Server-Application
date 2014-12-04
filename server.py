@@ -45,9 +45,9 @@ def chat_server():
                     data = sock.recv(RECV_BUFFER)
                     if data:
                         # there is something in the socket
-                        print data
-                        process_command(data,sock)
-                        broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)  
+                        #print data
+                        process_command(server_socket,data,sock)
+                        #broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)  
                     else:
                         # remove the socket that's broken    
                         if sock in SOCKET_LIST:
@@ -80,11 +80,23 @@ def broadcast (server_socket, sock, message):
                 if socket in SOCKET_LIST:
                     SOCKET_LIST.remove(socket)
 
-def process_command(data,sock):
+def unicast_reply(sock,message):
+    try :
+        sock.send(message)
+    except :
+        # broken socket connection
+        sock.close()
+        # broken socket, remove it
+
+
+def process_command(server_sock,data,sock):
     if "adduser" in data:
         register_user(data,sock)
     if "removeuser" in data:
         deregister_user(data,sock)
+    if "list" in data:
+        users = list_users()
+        unicast_reply(sock,users)
 
 def register_user(data,sock):
     with open("users.txt", "a") as myfile:
@@ -100,6 +112,11 @@ def deregister_user(data,sock):
             f.write(line)
     f.close()
 
+def list_users():
+    f = open("users.txt","r")
+    users = f.read()
+    return users
+  
 if __name__ == "__main__":
 
     sys.exit(chat_server())
