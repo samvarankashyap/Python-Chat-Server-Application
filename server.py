@@ -45,7 +45,7 @@ def chat_server():
                     data = sock.recv(RECV_BUFFER)
                     if data:
                         # there is something in the socket
-                        #print data
+                        print data
                         process_command(server_socket,data,sock)
                         #broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)  
                     else:
@@ -55,12 +55,12 @@ def chat_server():
 
                         # at this stage, no data means probably the connection has been broken
                         broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr) 
-                        process_command("removeuser",sock)
+                        process_command(server_socket,"removeuser",sock)
 
                 # exception 
                 except:
                     broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
-                    process_command("removeuser",sock)
+                    process_command(server_socket,"removeuser",sock)
                     continue
 
     server_socket.close()
@@ -88,6 +88,17 @@ def unicast_reply(sock,message):
         sock.close()
         # broken socket, remove it
 
+def get_socket_by_name(name):
+    sock_str = ""
+    f = open("users.txt","r")
+    lines = f.readlines()
+    f.close()
+    for line in lines:
+        if name == line.split("::")[0].split(" ")[1]:
+             sock_str = line.split("::")[1]
+    for sock in SOCKET_LIST:
+        if sock_str.strip('\n') == str(sock):
+            return sock
 
 def process_command(server_sock,data,sock):
     if "adduser" in data:
@@ -95,8 +106,18 @@ def process_command(server_sock,data,sock):
     if "removeuser" in data:
         deregister_user(data,sock)
     if "list" in data:
-        users = list_users()
+        users = list_users(data)
         unicast_reply(sock,users)
+    if "sendto" in data:
+        send_message(data,sock)
+
+def send_message(data,sender_sock):
+    data = data.split(" ")
+    if len(data)==3:
+        reciver_sock = get_socket_by_name(data[1])
+        unicast_reply(reciver_sock,data[2] )
+    else:
+        unicast_reply(sender_sock,"error in send to command please refer to help")
 
 def register_user(data,sock):
     with open("users.txt", "a") as myfile:
@@ -112,7 +133,7 @@ def deregister_user(data,sock):
             f.write(line)
     f.close()
 
-def list_users():
+def list_users(data):
     f = open("users.txt","r")
     users = f.read()
     return users
