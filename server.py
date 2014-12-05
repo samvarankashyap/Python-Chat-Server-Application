@@ -10,6 +10,8 @@ SOCKET_LIST = []
 RECV_BUFFER = 4096 
 PORT = 9009
 
+OPTIONS="The Commands list are : \n1.login\n2.list\n3.sendto\n4.help\n5.exit\n"
+
 def chat_server():
     open("users.txt", 'w').close()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,15 +29,13 @@ def chat_server():
         # get the list sockets which are ready to be read through select
         # 4th arg, time_out  = 0 : poll and never block
         ready_to_read,ready_to_write,in_error = select.select(SOCKET_LIST,[],[],0)
-        #pdb.set_trace()
-      
         for sock in ready_to_read:
             # a new connection request recieved
             if sock == server_socket: 
                 sockfd, addr = server_socket.accept()
                 SOCKET_LIST.append(sockfd)
                 print "Client (%s, %s) connected" % addr
-                broadcast(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
+                #broadcast(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
              
             # a message from a client, not a new connection
             else:
@@ -94,14 +94,15 @@ def get_socket_by_name(name):
     lines = f.readlines()
     f.close()
     for line in lines:
-        if name == line.split("::")[0].split(" ")[1]:
-             sock_str = line.split("::")[1]
+        if name == line.split("::")[0]:
+             sock_str = line.split("::")[1].strip("\n")
     for sock in SOCKET_LIST:
         if sock_str.strip('\n') == str(sock):
             return sock
 
 def process_command(server_sock,data,sock):
-    if "adduser" in data:
+    #pdb.set_trace()
+    if "login" in data:
         register_user(data,sock)
     if "removeuser" in data:
         deregister_user(data,sock)
@@ -110,6 +111,8 @@ def process_command(server_sock,data,sock):
         unicast_reply(sock,users)
     if "sendto" in data:
         send_message(data,sock)
+    if "help" in data:
+        unicast_reply(sock,OPTIONS)
 
 def send_message(data,sender_sock):
     data = data.split(" ")
@@ -121,7 +124,7 @@ def send_message(data,sender_sock):
 
 def register_user(data,sock):
     with open("users.txt", "a") as myfile:
-            myfile.write(data+"::"+str(sock)+"\n")
+            myfile.write(data.split(" ")[1].strip("\n")+"::"+str(sock)+"\n")
 
 def deregister_user(data,sock):
     f = open("users.txt","r")

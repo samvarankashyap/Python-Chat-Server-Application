@@ -5,21 +5,19 @@ import socket
 import select
  
 def chat_client():
-    if(len(sys.argv) < 4) :
-        print 'Usage : python chat_client.py hostname port username'
+    if(len(sys.argv) < 3) :
+        print 'Usage : python chat_client.py hostname port'
         sys.exit()
 
     host = sys.argv[1]
     port = int(sys.argv[2])
-    client_name = sys.argv[3]
-     
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
      
     # connect to remote host
     try :
         s.connect((host, port))
-        s.send("adduser "+client_name)
+        #s.send("adduser "+client_name)
     except :
         print 'Unable to connect'
         sys.exit()
@@ -29,7 +27,6 @@ def chat_client():
      
     while 1:
         socket_list = [sys.stdin, s]
-         
         # Get the list sockets which are readable
         ready_to_read,ready_to_write,in_error = select.select(socket_list , [], [])
          
@@ -48,6 +45,9 @@ def chat_client():
             else :
                 # user entered a message
                 msg = sys.stdin.readline()
+                #print msg
+                if "exit" == msg.strip("\n"):
+                    sys.exit(0)
                 s.send(msg)
                 sys.stdout.write('[Me] '); sys.stdout.flush() 
 
